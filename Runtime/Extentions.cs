@@ -99,6 +99,87 @@ namespace Pospec.Helper
             return true;
         }
 
+        public static bool TryUpperBound<T>(this IList<T> list, T value, out T item)
+        {
+            return list.TryUpperBound(value, Comparer<T>.Default, out item);
+        }
+
+        public static bool TryUpperBound<T>(this IList<T> list, T value, IComparer<T> comp, out T item)
+        {
+            item = default(T);
+            int i = list.UpperBoundIndex(value, comp);
+            if (i >= list.Count)
+                return false;
+
+            item = list[i];
+            return true;
+        }
+
+        public static bool TryLowerBound<T>(this IList<T> list, T value, out T item)
+        {
+            return list.TryLowerBound(value, Comparer<T>.Default, out item);
+        }
+
+        public static bool TryLowerBound<T>(this IList<T> list, T value, IComparer<T> comp, out T item)
+        {
+            item = default(T);
+            int i = list.LowerBoundIndex(value, comp);
+            if (i < 0)
+                return false;
+
+            item = list[i];
+            return true;
+        }
+
+        public static int UpperBoundIndex<T>(this IList<T> list, T value)
+        {
+            return list.UpperBoundIndex(value, Comparer<T>.Default);
+        }
+
+        public static int UpperBoundIndex<T>(this IList<T> list, T value, IComparer<T> comp)
+        {
+            int i = list.BinarySearch(value, comp);
+            if (comp.Compare(list[i], value) < 0)
+                i++;
+
+            return i;
+        }
+
+        public static int LowerBoundIndex<T>(this IList<T> list, T value)
+        {
+            return list.LowerBoundIndex(value, Comparer<T>.Default);
+        }
+
+        public static int LowerBoundIndex<T>(this IList<T> list, T value, IComparer<T> comp)
+        {
+            int i = list.BinarySearch(value, comp);
+            if (comp.Compare(list[i], value) > 0)
+                i--;
+
+            return i;
+        }
+
+        public static int BinarySearch<T>(this IList<T> list, T value)
+        {
+            return list.BinarySearch(value, Comparer<T>.Default);
+        }
+
+        public static int BinarySearch<T>(this IList<T> list, T value, IComparer<T> comp)
+        {
+            if (list == null)
+                throw new ArgumentNullException("list is null");
+            int low = 0, high = list.Count - 1;
+            while (low < high)
+            {
+                int m = (high + low) / 2;
+                if (comp.Compare(list[m], value) < 0)
+                    low = m + 1;
+                else
+                    high = m - 1;
+            }
+            return low;
+        }
+
         #endregion
 
         #region Vector Extentions
@@ -111,6 +192,9 @@ namespace Pospec.Helper
         public static Vector2 SetY(this Vector2 v, float y) => new Vector2(v.x, y);
         public static Vector2Int SetX(this Vector2Int v, int x) => new Vector2Int(x, v.y);
         public static Vector2Int SetY(this Vector2Int v, int y) => new Vector2Int(v.x, y);
+
+        public static Vector2 AddX(this Vector2 v, float x) => new Vector2(v.x + x, v.y);
+        public static Vector2 AddY(this Vector2 v, float y) => new Vector2(v.x, v.y + y);
 
         public static float Angle(this Vector2 v) => Mathf.Atan2(v.y, v.x) * Mathf.Rad2Deg;
 
@@ -147,7 +231,7 @@ namespace Pospec.Helper
                 throw new Exception("The collection of other Components is empty");
             return closest.transform;
         }
-        
+
         public delegate int Dist(Component a, Component b);
 
         public static Component GetClosest(this Component component, IEnumerable<Component> components, Dist distFunction)
@@ -185,7 +269,7 @@ namespace Pospec.Helper
         #endregion
 
         #region Transform Extentions
-        
+
         public static void DestroyChildren(this Transform transform)
         {
             for (int i = transform.childCount - 1; i >= 0; i--)
@@ -208,6 +292,17 @@ namespace Pospec.Helper
         public static bool Contains(this LayerMask mask, int layerNumber)
         {
             return mask == (mask | (1 << layerNumber));
+        }
+
+        #endregion
+
+        #region Numeric Extentions
+
+        public static float Normalize(this float x)
+        {
+            if (x == 0)
+                return 0;
+            return x > 0 ? 1 : -1;
         }
 
         #endregion
