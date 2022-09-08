@@ -2,5 +2,6 @@
   "name": "pospec.helper",
   "version": "1.0.0",
   "displayName": "Helper",
-  "dependencies": {}
+  "description": "Helper functions, classes and class extentions.",
+  "type": "library"
 }
