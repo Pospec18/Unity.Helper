@@ -152,5 +152,11 @@ namespace Pospec.Helper.Character
                 transform.localScale = scale;
             }
         }
+
+        protected virtual void OnDisable()
+        {
+            jumping = false;
+            coyoteJump = false;
+        }
     }
 }

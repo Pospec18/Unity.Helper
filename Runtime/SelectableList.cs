@@ -12,6 +12,17 @@ namespace Pospec.Helper
         [SerializeField] private bool someItemSelected = false;
         [SerializeField] private List<T> items;
 
+        public T SelectedOrDefault
+        {
+            get
+            {
+                if (TryGetSelectedItem(out T item))
+                    return item;
+
+                return default(T);
+            }
+        }
+
         public T this[int index] { get => items[index]; set => items[index] = value; }
 
         public int Count => items.Count;
@@ -104,10 +115,13 @@ namespace Pospec.Helper
                 someItemSelected = true;
             }
         }
-    }
 
-    [Serializable]
-    public class CurrentList<T> : List<T>
-    {
+        public T GetSelectedOrFirstItem()
+        {
+            if (TryGetSelectedItem(out T item))
+                return item;
+
+            return items[0];
+        }
     }
 }
