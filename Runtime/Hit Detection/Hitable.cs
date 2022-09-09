@@ -1,7 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using System;
+using UnityEngine;
 
 namespace Pospec.Helper.Hit
 {
@@ -14,12 +12,15 @@ namespace Pospec.Helper.Hit
     {
         [SerializeField, Min(1)] protected float maxHealth = 4;
 
-        protected float _health;
-        protected float Health
+        private float _health;
+        public float Health
         {
             get => _health;
-            set
+            protected set
             {
+                if(_health != value)
+                    OnHealthChanged?.Invoke(value);
+
                 _health = value;
                 if(_health > maxHealth)
                     _health = maxHealth;
@@ -29,6 +30,11 @@ namespace Pospec.Helper.Hit
             }
         }
 
+        public event Action<float> OnHealthChanged;
+        protected event Action OnFullHeal;
+        protected event Action<float> OnHealBy;
+        protected event Action<float, Transform> OnTakeHit;
+
         protected virtual void Start()
         {
             FullyHeal();
@@ -37,26 +43,20 @@ namespace Pospec.Helper.Hit
         public void FullyHeal()
         {
             Health = maxHealth;
-            OnFullHeal();
+            OnFullHeal?.Invoke();
         }
-
-        protected virtual void OnFullHeal() { }
 
         public void HealBy(float value)
         {
             Health += value;
-            OnHealBy(value);
+            OnHealBy?.Invoke(value);
         }
-
-        protected virtual void OnHealBy(float value) { }
 
         public void TakeHit(float damage, Transform attacker)
         {
             Health -= damage;
-            OnTakeHit(damage, attacker);
+            OnTakeHit?.Invoke(damage, attacker);
         }
-
-        protected virtual void OnTakeHit(float damage, Transform attacker) { }
 
         public abstract void Death();
     }

@@ -43,6 +43,7 @@ namespace Pospec.Helper.Character
 
         protected override void Start()
         {
+            base.Start();
             Rb.freezeRotation = true;
             Rb.gravityScale = 1 / (2 * jumpDuration * jumpDuration);
         }
