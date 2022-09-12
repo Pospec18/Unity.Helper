@@ -206,6 +206,44 @@ namespace Pospec.Helper
         public static Vector2Int Mod(this Vector2Int v, int m) => new Vector2Int(v.x % m, v.y % m);
         public static Vector3 Mod(this Vector3 v, int m) => new Vector3(v.x % m, v.y % m, v.z % m);
 
+        public static List<Vector2Int> GetNeighbours(this Vector2Int center, bool allowDiagonal = true)
+        {
+            List<Vector2Int> neighbours = new List<Vector2Int>();
+            neighbours.Add(center + Vector2Int.left);
+            neighbours.Add(center + Vector2Int.right);
+            neighbours.Add(center + Vector2Int.up);
+            neighbours.Add(center + Vector2Int.down);
+
+            if (allowDiagonal)
+            {
+                neighbours.Add(center + new Vector2Int(1, 1));
+                neighbours.Add(center + new Vector2Int(1, -1));
+                neighbours.Add(center + new Vector2Int(-1, 1));
+                neighbours.Add(center + new Vector2Int(-1, -1));
+            }
+
+            return neighbours;
+        }
+
+        public static List<Vector2> GetNeighbours(this Vector2 center, bool allowDiagonal = true)
+        {
+            List<Vector2> neighbours = new List<Vector2>();
+            neighbours.Add(center + Vector2.left);
+            neighbours.Add(center + Vector2.right);
+            neighbours.Add(center + Vector2.up);
+            neighbours.Add(center + Vector2.down);
+
+            if (allowDiagonal)
+            {
+                neighbours.Add(center + new Vector2(1, 1));
+                neighbours.Add(center + new Vector2(1, -1));
+                neighbours.Add(center + new Vector2(-1, 1));
+                neighbours.Add(center + new Vector2(-1, -1));
+            }
+
+            return neighbours;
+        }
+
         #endregion
 
         #region Component Extentions
