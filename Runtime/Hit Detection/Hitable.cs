@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 namespace Pospec.Helper.Hit
@@ -10,8 +11,11 @@ namespace Pospec.Helper.Hit
 
     public abstract class Deathable : MonoBehaviour, IHitable
     {
+        [Header("Health")]
         [SerializeField, Min(1)] protected float maxHealth = 4;
+        [SerializeField, Min(1)] private float ignoreNextHitsTime = 1;
 
+        private bool ignoreHits = false;
         private float _health;
         public float Health
         {
@@ -40,6 +44,11 @@ namespace Pospec.Helper.Hit
             FullyHeal();
         }
 
+        protected virtual void OnEnable()
+        {
+            ignoreHits = false;
+        }
+
         public void FullyHeal()
         {
             Health = maxHealth;
@@ -54,8 +63,20 @@ namespace Pospec.Helper.Hit
 
         public void TakeHit(float damage, Transform attacker)
         {
+            if (ignoreHits)
+                return;
             Health -= damage;
+            StartCoroutine(IgnoreNextHits());
             OnTakeHit?.Invoke(damage, attacker);
+        }
+
+        private IEnumerator IgnoreNextHits()
+        {
+            if(ignoreNextHitsTime <= 0)
+                yield break;
+            ignoreHits = true;
+            yield return Helper.GetWait(ignoreNextHitsTime);
+            ignoreHits = false;
         }
 
         public abstract void Death();
