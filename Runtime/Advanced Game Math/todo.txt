@@ -1,2 +1,1 @@
-Catmull Spline
 translate, rotate scale matricies
