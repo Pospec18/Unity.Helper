@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Pospec.Helper
 {
@@ -303,6 +304,18 @@ namespace Pospec.Helper
             return component.GetComponent<T>() != null;
         }
 
+        public static Vector3 CountAveragePosition(this IEnumerable<Component> components)
+        {
+            Vector3 sum = Vector3.zero;
+            int count = 0;
+            foreach (var item in components)
+            {
+                sum += item.transform.position;
+                count++;
+            }
+            return sum / count;
+        }
+
         #endregion
 
         #region Transform Extentions
@@ -340,6 +353,39 @@ namespace Pospec.Helper
             if (x == 0)
                 return 0;
             return x > 0 ? 1 : -1;
+        }
+
+        #endregion
+
+        #region Input Extensions
+
+        public static bool IsMouseOverLayer(int layer)
+        {
+            var eventSystemRaysastResults = GetEventSystemRaycastResults();
+            foreach (var raycastResult in eventSystemRaysastResults)
+                if (raycastResult.gameObject.layer == layer)
+                    return true;
+            return false;
+        }
+
+
+        public static bool IsMouseOverLayer(LayerMask mask)
+        {
+            var eventSystemRaysastResults = GetEventSystemRaycastResults();
+            foreach (var raycastResult in eventSystemRaysastResults)
+                if (mask.Contains(raycastResult.gameObject.layer))
+                    return true;
+            return false;
+        }
+
+        // From https://forum.unity.com/threads/how-to-detect-if-mouse-is-over-ui.1025533/
+        private static List<RaycastResult> GetEventSystemRaycastResults()
+        {
+            PointerEventData eventData = new PointerEventData(EventSystem.current);
+            eventData.position = Input.mousePosition;
+            List<RaycastResult> raysastResults = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(eventData, raysastResults);
+            return raysastResults;
         }
 
         #endregion

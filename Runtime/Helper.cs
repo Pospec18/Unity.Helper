@@ -11,7 +11,7 @@ namespace Pospec.Helper
         {
             get
             {
-                if(mainCamera == null)
+                if (mainCamera == null)
                     mainCamera = Camera.main;
 
                 return mainCamera;
