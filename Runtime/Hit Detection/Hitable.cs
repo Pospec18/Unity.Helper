@@ -22,17 +22,19 @@ namespace Pospec.Helper.Hit
             get => _health;
             protected set
             {
-                if(_health != value)
+                if (_health != value)
                     OnHealthChanged?.Invoke(value);
 
                 _health = value;
-                if(_health > maxHealth)
+                if (_health > maxHealth)
                     _health = maxHealth;
 
-                if(_health <= 0)
+                if (_health <= 0)
                     Death();
             }
         }
+
+        public float MaxHealth => maxHealth;
 
         public event Action<float> OnHealthChanged;
         protected event Action OnFullHeal;
@@ -72,7 +74,7 @@ namespace Pospec.Helper.Hit
 
         private IEnumerator IgnoreNextHits()
         {
-            if(ignoreNextHitsTime <= 0)
+            if (ignoreNextHitsTime <= 0)
                 yield break;
             ignoreHits = true;
             yield return Helper.GetWait(ignoreNextHitsTime);

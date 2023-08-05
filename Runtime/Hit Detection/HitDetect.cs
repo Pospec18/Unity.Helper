@@ -19,7 +19,7 @@ namespace Pospec.Helper.Hit
 
         public static bool Hit(Component target, Component attacker, float damage)
         {
-            if(target.gameObject != attacker.gameObject && target.TryGetComponent(out IHitable hitable))
+            if (target.gameObject != attacker.gameObject && target.TryGetComponent(out IHitable hitable))
             {
                 hitable.TakeHit(damage, attacker.transform);
                 return true;
