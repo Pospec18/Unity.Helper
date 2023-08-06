@@ -109,7 +109,7 @@ namespace Pospec.Helper
         public static void Add<T>(T toAdd) where T : class
         {
             Initialize();
-            if (!singletons.TryGetValue(typeof(T), out object val))
+            if (singletons.TryGetValue(typeof(T), out object val))
             {
                 if (val != null && val.GetType().IsSubclassOf(typeof(Component)))
                 {
@@ -153,6 +153,29 @@ namespace Pospec.Helper
             }
 
             singletons.Add(typeof(T), toAdd);
+            UnityEngine.Object.DontDestroyOnLoad(toAdd);
+        }
+
+        /// <summary>
+        /// Stores object as singleton for given type.
+        /// Makes object not destructible when changing scenes.
+        /// If singleton already exists, deletes currently provided gameObject and keeps the old one.
+        /// If T is MonoBehaviour add `SingletonProvider.Remove(this);` to OnDestroy callback.
+        /// </summary>
+        /// <typeparam name="T">type of object to be stored</typeparam>
+        /// <typeparam name="I">type of singleton</typeparam>
+        /// <param name="toAdd">object to be stored as singleton</param>
+        public static void AddPersistentObject<T, I>(T toAdd) where T : Component, I
+        {
+            Initialize();
+            if (singletons.ContainsKey(typeof(I)))
+            {
+                UnityEngine.Object.Destroy(toAdd.gameObject);
+                Debug.LogWarning($"Persistent Singleton of {typeof(I)} already exists. Deleting currently provided object.", toAdd);
+                return;
+            }
+
+            singletons.Add(typeof(I), toAdd);
             UnityEngine.Object.DontDestroyOnLoad(toAdd);
         }
 
