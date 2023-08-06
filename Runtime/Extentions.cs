@@ -316,6 +316,11 @@ namespace Pospec.Helper
             return sum / count;
         }
 
+        public static bool Exists(this Component component)
+        {
+            return component != null && component.gameObject != null && component.gameObject.scene != null;
+        }
+
         #endregion
 
         #region Transform Extentions

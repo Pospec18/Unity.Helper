@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Pospec.Helper
 {
@@ -76,24 +77,58 @@ namespace Pospec.Helper
     public static class SingletonProvider
     {
         private static readonly Dictionary<Type, object> singletons = new();
+        private static bool initialized = false;
+
+        private static void Initialize()
+        {
+            if (initialized)
+                return;
+
+            SceneManager.sceneUnloaded += (_) => OnSceneChanged();
+            initialized = true;
+        }
+
+        private static void OnSceneChanged()
+        {
+            List<Type> toRemove = new();
+            foreach (var item in singletons)
+                if (item.Value.GetType().IsSubclassOf(typeof(Component)) && !((Component)item.Value).Exists())
+                    toRemove.Add(item.Key);
+
+            foreach (var item in toRemove)
+                singletons.Remove(item);
+        }
 
         /// <summary>
         /// Stores object as singleton for given type.
-        /// If singleton is going to be overwrited, removes the old one and replaces it with currently provided object.
+        /// If singleton already exists, deletes currently provided object and keeps the old one.
+        /// If T is MonoBehaviour add `SingletonProvider.Remove(this);` to OnDestroy callback.
         /// </summary>
         /// <typeparam name="T">type of singleton</typeparam>
         /// <param name="toAdd">object to be stored as singleton</param>
         public static void Add<T>(T toAdd) where T : class
         {
-            if (singletons.TryGetValue(typeof(T), out object val))
+            Initialize();
+            if (!singletons.TryGetValue(typeof(T), out object val))
             {
-                singletons.Remove(typeof(T));
-                Debug.LogWarning("Overwriting singleton of " + typeof(T));
-                if (val.GetType().IsSubclassOf(typeof(UnityEngine.Object)))
+                if (val != null && val.GetType().IsSubclassOf(typeof(Component)))
                 {
-                    Debug.Log("Deleting old singleton of " + typeof(T));
-                    UnityEngine.Object.Destroy((UnityEngine.Object)val);
+                    Component c = (Component)val;
+                    if (c.Exists())
+                    {
+                        Debug.LogWarning($"Singleton of {typeof(T)} already exists. Deleting currently provided object.", c);
+                        UnityEngine.Object.Destroy(toAdd as Component);
+                        return;
+                    }
+                    else
+                    {
+                        singletons.Add(typeof(T), toAdd);
+                        return;
+                    }
                 }
+
+                Debug.LogWarning("Overwriting singleton of " + typeof(T));
+                singletons.Remove(typeof(T));
             }
 
             singletons.Add(typeof(T), toAdd);
@@ -102,16 +137,18 @@ namespace Pospec.Helper
         /// <summary>
         /// Stores object as singleton for given type.
         /// Makes object not destructible when changing scenes.
-        /// If singleton is going to be overwrited, deletes currently provided object and keeps the old one.
+        /// If singleton already exists, deletes currently provided gameObject and keeps the old one.
+        /// If T is MonoBehaviour add `SingletonProvider.Remove(this);` to OnDestroy callback.
         /// </summary>
         /// <typeparam name="T">type of singleton</typeparam>
         /// <param name="toAdd">object to be stored as singleton</param>
-        public static void AddPersistentObject<T>(T toAdd) where T : UnityEngine.Object
+        public static void AddPersistentObject<T>(T toAdd) where T : Component
         {
+            Initialize();
             if (singletons.ContainsKey(typeof(T)))
             {
-                UnityEngine.Object.Destroy(toAdd);
-                Debug.LogWarning($"Singleton of {typeof(T)} already exists. Deleting this one.", toAdd);
+                UnityEngine.Object.Destroy(toAdd.gameObject);
+                Debug.LogWarning($"Persistent Singleton of {typeof(T)} already exists. Deleting currently provided object.", toAdd);
                 return;
             }
 
