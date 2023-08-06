@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Pospec.Helper
@@ -65,6 +67,86 @@ namespace Pospec.Helper
                 if (instance == null) instance = new T();
                 return instance;
             }
+        }
+    }
+
+    /// <summary>
+    /// Provider for acessing singleton classes.
+    /// </summary>
+    public static class SingletonProvider
+    {
+        private static readonly Dictionary<Type, object> singletons = new();
+
+        /// <summary>
+        /// Stores object as singleton for given type.
+        /// If singleton is going to be overwrited, removes the old one and replaces it with currently provided object.
+        /// </summary>
+        /// <typeparam name="T">type of singleton</typeparam>
+        /// <param name="toAdd">object to be stored as singleton</param>
+        public static void Add<T>(T toAdd) where T : class
+        {
+            if (singletons.TryGetValue(typeof(T), out object val))
+            {
+                singletons.Remove(typeof(T));
+                Debug.LogWarning("Overwriting singleton of " + typeof(T));
+                if (val.GetType().IsSubclassOf(typeof(UnityEngine.Object)))
+                {
+                    Debug.Log("Deleting old singleton of " + typeof(T));
+                    UnityEngine.Object.Destroy((UnityEngine.Object)val);
+                }
+            }
+
+            singletons.Add(typeof(T), toAdd);
+        }
+
+        /// <summary>
+        /// Stores object as singleton for given type.
+        /// Makes object not destructible when changing scenes.
+        /// If singleton is going to be overwrited, deletes currently provided object and keeps the old one.
+        /// </summary>
+        /// <typeparam name="T">type of singleton</typeparam>
+        /// <param name="toAdd">object to be stored as singleton</param>
+        public static void AddPersistentObject<T>(T toAdd) where T : UnityEngine.Object
+        {
+            if (singletons.ContainsKey(typeof(T)))
+            {
+                UnityEngine.Object.Destroy(toAdd);
+                Debug.LogWarning($"Singleton of {typeof(T)} already exists. Deleting this one.", toAdd);
+                return;
+            }
+
+            singletons.Add(typeof(T), toAdd);
+            UnityEngine.Object.DontDestroyOnLoad(toAdd);
+        }
+
+        /// <summary>
+        /// Removes singleton record.
+        /// Checks if object to be removed is same as current singleton.
+        /// </summary>
+        /// <typeparam name="T">type of singleton</typeparam>
+        /// <param name="toRemove">object to be removed</param>
+        public static void Remove<T>(T toRemove) where T : class
+        {
+            if (!singletons.TryGetValue(typeof(T), out object val) || !EqualityComparer<T>.Default.Equals((T)val, toRemove))
+            {
+                Debug.LogWarning(toRemove.ToString() + " not found in singletons");
+                return;
+            }
+
+            singletons.Remove(typeof(T));
+        }
+
+        /// <summary>
+        /// Gets current singleton of given type
+        /// </summary>
+        /// <typeparam name="T">type of singleton</typeparam>
+        public static T Get<T>() where T : class
+        {
+            if (singletons.TryGetValue(typeof(T), out object val))
+                return (T)val;
+
+            Debug.LogWarning($"No instance of {typeof(T)} found.");
+            return default;
         }
     }
 }
