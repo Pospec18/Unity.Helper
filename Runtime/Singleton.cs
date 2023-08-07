@@ -9,6 +9,7 @@ namespace Pospec.Helper
     /// Static reference to object of type T
     /// </summary>
     /// <typeparam name="T"></typeparam>
+    [Obsolete("Use SingletonProvider instead. Not suitable for polymorfism and class can't inherit other base class.")]
     public abstract class StaticInstance<T> : MonoBehaviour where T : MonoBehaviour
     {
         public static T Instance { get; private set; }
@@ -28,6 +29,7 @@ namespace Pospec.Helper
     /// Reference to single object of type T in scene. If more object of type T are in the scene, they will be deleted
     /// </summary>
     /// <typeparam name="T"></typeparam>
+    [Obsolete("Use SingletonProvider instead. Not suitable for polymorfism and class can't inherit other base class.")]
     public abstract class Singleton<T> : StaticInstance<T> where T : MonoBehaviour
     {
         protected override void Awake()
@@ -45,6 +47,7 @@ namespace Pospec.Helper
     /// Singleton that is not destroyed while moving between scenes
     /// </summary>
     /// <typeparam name="T"></typeparam>
+    [Obsolete("Use SingletonProvider instead. Not suitable for polymorfism and class can't inherit other base class.")]
     public abstract class PersistentSingleton<T> : Singleton<T> where T : MonoBehaviour
     {
         protected override void Awake()
@@ -58,6 +61,7 @@ namespace Pospec.Helper
     /// Singleton for not MonoBehaviour classes
     /// </summary>
     /// <typeparam name="T"></typeparam>
+    [Obsolete("Use SingletonProvider instead. Not suitable for polymorfism and class can't inherit other base class.")]
     public abstract class SingletonClass<T> where T : new()
     {
         private static T instance;
@@ -116,7 +120,7 @@ namespace Pospec.Helper
                     Component c = (Component)val;
                     if (c.Exists())
                     {
-                        Debug.LogWarning($"Singleton of {typeof(T)} already exists. Deleting currently provided object.", c);
+                        Debug.LogWarning($"Singleton of {typeof(T)} already exists. Deleting currently provided component.", c);
                         UnityEngine.Object.Destroy(toAdd as Component);
                         return;
                     }
