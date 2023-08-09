@@ -81,6 +81,7 @@ namespace Pospec.Helper
     public static class SingletonProvider
     {
         private static readonly Dictionary<Type, object> singletons = new();
+        private static readonly Dictionary<Type, EventWrapper<object>> onChangeCallbacks = new();
         private static bool initialized = false;
 
         private static void Initialize()
@@ -95,12 +96,16 @@ namespace Pospec.Helper
         private static void OnSceneChanged()
         {
             List<Type> toRemove = new();
-            foreach (var item in singletons)
-                if (item.Value.GetType().IsSubclassOf(typeof(Component)) && !((Component)item.Value).Exists())
-                    toRemove.Add(item.Key);
+            foreach (var pair in singletons)
+                if (pair.Value.GetType().IsSubclassOf(typeof(Component)) && !((Component)pair.Value).Exists())
+                    toRemove.Add(pair.Key);
 
-            foreach (var item in toRemove)
-                singletons.Remove(item);
+            foreach (var type in toRemove)
+            {
+                singletons.Remove(type);
+                if (onChangeCallbacks.TryGetValue(type, out EventWrapper<object> callback))
+                    callback?.Invoke(null);
+            }
         }
 
         /// <summary>
@@ -127,6 +132,8 @@ namespace Pospec.Helper
                     else
                     {
                         singletons.Add(typeof(T), toAdd);
+                        if (onChangeCallbacks.TryGetValue(typeof(T), out EventWrapper<object> callback1))
+                            callback1?.Invoke(toAdd);
                         return;
                     }
                 }
@@ -136,6 +143,8 @@ namespace Pospec.Helper
             }
 
             singletons.Add(typeof(T), toAdd);
+            if (onChangeCallbacks.TryGetValue(typeof(T), out EventWrapper<object> callback2))
+                callback2?.Invoke(toAdd);
         }
 
         /// <summary>
@@ -157,6 +166,8 @@ namespace Pospec.Helper
             }
 
             singletons.Add(typeof(T), toAdd);
+            if (onChangeCallbacks.TryGetValue(typeof(T), out EventWrapper<object> callback))
+                callback?.Invoke(toAdd);
             UnityEngine.Object.DontDestroyOnLoad(toAdd);
         }
 
@@ -180,7 +191,25 @@ namespace Pospec.Helper
             }
 
             singletons.Add(typeof(I), toAdd);
+            if (onChangeCallbacks.TryGetValue(typeof(T), out EventWrapper<object> callback))
+                callback?.Invoke(toAdd);
             UnityEngine.Object.DontDestroyOnLoad(toAdd);
+        }
+
+
+        public static void AddChangeCallback<T>(Action<object> onChange) where T : class
+        {
+
+            if (onChangeCallbacks.TryGetValue(typeof(T), out EventWrapper<object> callback))
+            {
+                callback.Subscribe(onChange);
+            }
+            else
+            {
+                callback = new EventWrapper<object>();
+                callback.Subscribe(onChange);
+                onChangeCallbacks.Add(typeof(T), callback);
+            }
         }
 
         /// <summary>
@@ -198,6 +227,8 @@ namespace Pospec.Helper
             }
 
             singletons.Remove(typeof(T));
+            if (onChangeCallbacks.TryGetValue(typeof(T), out EventWrapper<object> callback))
+                callback?.Invoke(null);
         }
 
         /// <summary>
