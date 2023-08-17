@@ -342,6 +342,21 @@ namespace Pospec.Helper
 
         #endregion
 
+        #region Camera Extensions
+
+        public static bool InCameraView2D(this Camera cam, Bounds bounds)
+        {
+            return cam.OrthographicBounds().Intersects(bounds);
+        }
+
+        public static Bounds OrthographicBounds(this Camera cam)
+        {
+            Vector2 size = new Vector2(cam.aspect, 1) * cam.orthographicSize;
+            return new Bounds((Vector2)cam.transform.position, size * 2);
+        }
+
+        #endregion
+
         #region LayerMask Extentions
 
         public static bool Contains(this LayerMask mask, int layerNumber)
