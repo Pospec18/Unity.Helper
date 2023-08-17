@@ -41,6 +41,17 @@ namespace Pospec.Helper.Hit
         protected event Action<float> OnHealBy;
         protected event Action<float, Transform> OnTakeHit;
 
+        private Animator _animator;
+        protected Animator Animator
+        {
+            get
+            {
+                if (_animator == null)
+                    _animator = GetComponent<Animator>();
+                return _animator;
+            }
+        }
+
         protected virtual void Start()
         {
             FullyHeal();

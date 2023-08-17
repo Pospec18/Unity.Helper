@@ -48,6 +48,14 @@ namespace Pospec.Helper.Character
             Rb.gravityScale = 1 / (2 * jumpDuration * jumpDuration);
         }
 
+        protected virtual void Reset()
+        {
+            if (Rb == null)
+                return;
+
+            Rb.freezeRotation = true;
+        }
+
         protected virtual void FixedUpdate()
         {
             Move();

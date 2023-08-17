@@ -8,10 +8,20 @@ namespace Pospec.Helper.Character
         [SerializeField, Range(0, 1), Tooltip("0 = fluid; 1 = fixed movement")] private float accelationDamping = 0.3f;
         [SerializeField, Range(0, 1), Tooltip("0 = fluid; 1 = fixed movement")] private float stopDamping = 0.8f;
         [SerializeField, Min(0)] protected float speed = 10;
+        [Tooltip("Is character facing right, only used in flipX rotationStyle")]
         [SerializeField] private bool facingRight = true;
         [Tooltip("How should gameObject rotate with direction of character")]
         [SerializeField] private TopdownRotation rotateStyle = TopdownRotation.none;
         protected Vector2 Velocity { get; set; }
+
+        protected virtual void Reset()
+        {
+            if (Rb == null)
+                return;
+
+            Rb.gravityScale = 0;
+            Rb.freezeRotation = true;
+        }
 
         private void FixedUpdate()
         {
