@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -408,6 +410,18 @@ namespace Pospec.Helper
             return raysastResults;
         }
 
+        #endregion
+
+        #region String Extensions
+        public static MemoryStream ToStream(this string str)
+        {
+            return ToStream(str, Encoding.UTF8);
+        }
+
+        public static MemoryStream ToStream(this string str, Encoding encoding)
+        {
+            return new MemoryStream(encoding.GetBytes(str ?? ""), false);
+        }
         #endregion
     }
 }
