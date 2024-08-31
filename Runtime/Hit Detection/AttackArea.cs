@@ -25,10 +25,7 @@ namespace Pospec.Helper.Hit
             }
         }
 
-        protected virtual Collider2D[] GetTargets(Vector2 center, Vector2 dir)
-        {
-            return null;
-        }
+        protected abstract Collider2D[] GetTargets(Vector2 center, Vector2 dir);
 
         public Vector2 GetCenter(Vector2 dir)
         {

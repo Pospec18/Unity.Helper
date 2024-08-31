@@ -199,6 +199,13 @@ namespace Pospec.Helper
         public static Vector2 AddY(this Vector2 v, float y) => new Vector2(v.x, v.y + y);
 
         public static float Angle(this Vector2 v) => Mathf.Atan2(v.y, v.x) * Mathf.Rad2Deg;
+        public static Vector2 Rotate(this Vector2 v, float radians)
+        {
+            return new Vector2(
+                v.x * Mathf.Cos(radians) - v.y * Mathf.Sin(radians),
+                v.x * Mathf.Sin(radians) + v.y * Mathf.Cos(radians)
+            );
+        }
 
         public static Vector3 PlaneProjection(this Vector2 v) => new Vector3(v.x, 0, v.y);
 
@@ -421,6 +428,15 @@ namespace Pospec.Helper
         public static MemoryStream ToStream(this string str, Encoding encoding)
         {
             return new MemoryStream(encoding.GetBytes(str ?? ""), false);
+        }
+
+        /// <summary>
+        /// Puts the string into the Clipboard.
+        /// From https://thatfrenchgamedev.com/785/unity-2018-how-to-copy-string-to-clipboard/
+        /// </summary>
+        public static void CopyToClipboard(this string str)
+        {
+            GUIUtility.systemCopyBuffer = str;
         }
         #endregion
     }

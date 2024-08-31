@@ -70,6 +70,8 @@ namespace Pospec.Helper.Character
 
         private void RotateForward(Vector2 dir)
         {
+            if (dir == Vector2.zero)
+                return;
             transform.rotation = Quaternion.AngleAxis(dir.Angle(), Vector3.forward);
         }
     }

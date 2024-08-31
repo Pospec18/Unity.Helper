@@ -19,6 +19,8 @@ namespace Pospec.Helper
         }
 
         private static Dictionary<float, WaitForSeconds> WaitDictionary = new Dictionary<float, WaitForSeconds>();
+        private static Dictionary<float, WaitForSecondsRealtime> WaitRealtimeDictionary = new Dictionary<float, WaitForSecondsRealtime>();
+        
         public static WaitForSeconds GetWait(float time)
         {
             WaitForSeconds wait;
@@ -27,6 +29,17 @@ namespace Pospec.Helper
 
             wait = new WaitForSeconds(time);
             WaitDictionary.Add(time, wait);
+            return wait;
+        }
+
+        public static WaitForSecondsRealtime GetUnscaledWait(float time)
+        {
+            WaitForSecondsRealtime wait;
+            if (WaitRealtimeDictionary.TryGetValue(time, out wait))
+                return wait;
+
+            wait = new WaitForSecondsRealtime(time);
+            WaitRealtimeDictionary.Add(time, wait);
             return wait;
         }
 
@@ -41,6 +54,5 @@ namespace Pospec.Helper
             Array v = Enum.GetValues(typeof(T));
             return (T)v.GetValue(UnityEngine.Random.Range(0, v.Length));
         }
-
     }
 }
