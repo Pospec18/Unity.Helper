@@ -1,6 +1,0 @@
-kouknut se na Pop Pop in the Pub a videa o Pathfindingu a multiagent pathifindingu
-A*
-pro různé entity možnost mýt různé gridy (např. létací, pozemní, vodní atd.)
-rozdělit výpočet několika entit do několika framů - ale pro entity se bude zdát, že se počítá pořád
-return value - curve path
-možnost dát políčkům v gridu váhu (např. bahno, falloff od entity - aby se entity neshlukovali na jednom místě tak kolem každé bude v gridu horší projít)

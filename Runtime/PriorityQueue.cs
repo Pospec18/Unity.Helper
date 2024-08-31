@@ -77,7 +77,7 @@ namespace Pospec.Helper
         }
 
         /// <summary>
-        /// Removes first element of queueu and returns it
+        /// Removes first element of queue and returns it
         /// </summary>
         /// <returns></returns>
         public T Dequeue()
@@ -91,7 +91,7 @@ namespace Pospec.Helper
         }
 
         /// <summary>
-        /// Tries to remove first element of queueu and return it
+        /// Tries to remove first element of queue and return it
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>

@@ -1,3 +1,14 @@
 {
-	"name": "Pospec.Helper"
+    "name": "Pospec.Helper",
+    "rootNamespace": "Pospec.Helper",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
