@@ -16,12 +16,12 @@ namespace Pospec.Helper
             {
                 if (overideWithNewOne)
                 {
-                    Destroy(other);
+                    Destroy(other.gameObject);
                     Debug.LogWarning($"Overiding {nameof(PersistentSingleton)} with id {id}", this);
                 }
                 else
                 {
-                    Destroy(this);
+                    Destroy(gameObject);
                     Debug.LogWarning($"More than one {nameof(PersistentSingleton)} with id {id} in scene, deleting younger one", other);
                     return;
                 }

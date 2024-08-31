@@ -5,34 +5,28 @@ namespace Pospec.Helper
 {
     public static class MathHelper
     {
-        public static bool BoxLineIntersection(Vector2 center, Vector2 size, Quaternion rotation, Vector2 linePoint, Vector2 lineDir, out Vector2 intersection)
+        public static bool BoxLineIntersection(Vector2 center, Vector2 size, Quaternion rotation, Vector2 lineStart, Vector2 lineEnd, out Vector2 intersection)
         {
             Vector3 c = center;
-            var b1 = linePoint;
-            var b2 = linePoint + lineDir.normalized * 100; //todo 100 spatne
             if (Intersects(
                 c + rotation * new Vector2(size.x, size.y) / 2f, c + rotation * new Vector2(-size.x, size.y) / 2f,
-                b1, b2, out intersection))
+                lineStart, lineEnd, out intersection))
                 return true;
             if (Intersects(c + rotation * new Vector2(-size.x, size.y) / 2f, c + rotation * new Vector2(-size.x, -size.y) / 2f,
-                b1, b2, out intersection))
+                lineStart, lineEnd, out intersection))
                 return true;
             if (Intersects(c + rotation * new Vector2(-size.x, -size.y) / 2f, c + rotation * new Vector2(size.x, -size.y) / 2f,
-                b1, b2, out intersection))
+                lineStart, lineEnd, out intersection))
                 return true;
             if (Intersects(c + rotation * new Vector2(size.x, -size.y) / 2f, c + rotation * new Vector2(size.x, size.y) / 2f,
-                b1, b2, out intersection))
+                lineStart, lineEnd, out intersection))
                 return true;
             return false;
         }
 
-        //public Vector2 LineSegmentIntersection(Vector2 linePoint, Vector2 lineDir, Vector2 segmentStart, Vector2 segmentEnd)
-        //{
-
-        //}
 
         // a1 is line1 start, a2 is line1 end, b1 is line2 start, b2 is line2 end
-        static bool Intersects(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2, out Vector2 intersection)
+        private static bool Intersects(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2, out Vector2 intersection)
         {
             intersection = Vector2.zero;
 
@@ -57,6 +51,5 @@ namespace Pospec.Helper
 
             return true;
         }
-
     }
 }

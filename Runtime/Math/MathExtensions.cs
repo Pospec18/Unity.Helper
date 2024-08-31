@@ -76,39 +76,5 @@ namespace Pospec.Helper.Math
         }
 
         #endregion
-
-        #region Bounds Extensions
-
-        //public static void Cut(this ref Bounds bounds, Vector2 point)
-        //{
-        //    var max = bounds.max;
-        //    var min = bounds.min;
-        //    if (point.x > bounds.center.x)
-        //    {
-        //        if (max.x > point.x)
-        //            max.x = point.x;
-        //    }
-        //    else
-        //    {
-        //        if (min.x < point.x)
-        //            min.x = point.x;
-        //    }
-
-        //    if (point.y > bounds.center.y)
-        //    {
-        //        if (max.y > point.y)
-        //            max.y = point.y;
-        //    }
-        //    else
-        //    {
-        //        if (min.y < point.y)
-        //            min.y = point.y;
-        //    }
-
-        //    bounds.max = max;
-        //    bounds.min = min;
-        //}
-
-        #endregion
     }
 }

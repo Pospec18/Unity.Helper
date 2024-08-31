@@ -5,11 +5,11 @@ namespace Pospec.Helper
 {
     public class ExcludeObjectOnPlatforms : MonoBehaviour
     {
-        [SerializeField] private List<Platform> excludeOnPlatforms;
+        [SerializeField] private List<BuildPlatform> excludeOnPlatforms;
 
         private void Awake()
         {
-            if (excludeOnPlatforms.Contains(PlatformInfo.current))
+            if (excludeOnPlatforms.Contains(BuildPlatformInfo.current))
                 Destroy(gameObject);
         }
     }
