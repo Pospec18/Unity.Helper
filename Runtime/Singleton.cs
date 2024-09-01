@@ -27,15 +27,11 @@ namespace Pospec.Helper
         {
             List<Type> toRemove = new();
             foreach (var pair in singletons)
-                if (pair.Value.GetType().IsSubclassOf(typeof(Component)) && !((Component)pair.Value).Exists())
+                if (pair.Value is Component c && !c.Exists())
                     toRemove.Add(pair.Key);
 
             foreach (var type in toRemove)
-            {
-                singletons.Remove(type);
-                if (onChangeCallbacks.TryGetValue(type, out EventWrapper<object> callback))
-                    callback?.Invoke(null);
-            }
+                RemoveInternal(type);
         }
 
         /// <summary>
@@ -50,26 +46,23 @@ namespace Pospec.Helper
             Initialize();
             if (singletons.TryGetValue(typeof(T), out object val))
             {
-                if (val != null && val.GetType().IsSubclassOf(typeof(Component)))
+                if (val == toAdd)
+                    return;
+
+                if (val != null && val is Component c)
                 {
-                    Component c = (Component)val;
                     if (c.Exists())
                     {
                         Debug.LogWarning($"Singleton of {typeof(T)} already exists. Deleting currently provided component.", c);
                         UnityEngine.Object.Destroy(toAdd as Component);
                         return;
                     }
-                    else
-                    {
-                        singletons.Add(typeof(T), toAdd);
-                        if (onChangeCallbacks.TryGetValue(typeof(T), out EventWrapper<object> callback1))
-                            callback1?.Invoke(toAdd);
-                        return;
-                    }
                 }
-
-                Debug.LogWarning("Overwriting singleton of " + typeof(T));
-                singletons.Remove(typeof(T));
+                else
+                {
+                    Debug.LogWarning("Overwriting singleton of " + typeof(T));
+                    singletons.Remove(typeof(T));
+                }
             }
 
             singletons.Add(typeof(T), toAdd);
@@ -83,52 +76,51 @@ namespace Pospec.Helper
         /// If singleton already exists, deletes currently provided gameObject and keeps the old one.
         /// If T is MonoBehaviour add `SingletonProvider.Remove(this);` to OnDestroy callback.
         /// </summary>
-        /// <typeparam name="T">type of singleton</typeparam>
+        /// <typeparam name="T">type of object to be stored</typeparam>
+        /// <typeparam name="I">type of singleton</typeparam>
         /// <param name="toAdd">object to be stored as singleton</param>
-        public static void AddPersistentObject<T>(T toAdd) where T : Component
+        public static void AddPersistentObject<T, I>(T toAdd) where T : Component, I where I : class
         {
             Initialize();
-            if (singletons.ContainsKey(typeof(T)))
+            if (singletons.TryGetValue(typeof(T), out object val))
             {
-                UnityEngine.Object.Destroy(toAdd.gameObject);
-                Debug.LogWarning($"Persistent Singleton of {typeof(T)} already exists. Deleting currently provided object.", toAdd);
-                return;
+                if (val == toAdd)
+                {
+                    UnityEngine.Object.DontDestroyOnLoad(toAdd);
+                    return;
+                }
+
+                if (val != null && val is Component c)
+                {
+                    if (c.Exists())
+                    {
+                        Debug.LogWarning($"Persistent Singleton of {typeof(I)} already exists. Deleting currently provided object.", c);
+                        UnityEngine.Object.Destroy(toAdd.gameObject);
+                        return;
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("Overwriting singleton of " + typeof(T));
+                    singletons.Remove(typeof(T));
+                }
             }
 
-            singletons.Add(typeof(T), toAdd);
-            if (onChangeCallbacks.TryGetValue(typeof(T), out EventWrapper<object> callback))
+            singletons.Add(typeof(I), toAdd);
+            if (onChangeCallbacks.TryGetValue(typeof(I), out EventWrapper<object> callback))
                 callback?.Invoke(toAdd);
             UnityEngine.Object.DontDestroyOnLoad(toAdd);
         }
 
         /// <summary>
-        /// Stores object as singleton for given type.
-        /// Makes object not destructible when changing scenes.
-        /// If singleton already exists, deletes currently provided gameObject and keeps the old one.
-        /// If T is MonoBehaviour add `SingletonProvider.Remove(this);` to OnDestroy callback.
+        /// When Singleton changes it's value, onChangeFunction is called with new Singleton
         /// </summary>
-        /// <typeparam name="T">type of object to be stored</typeparam>
-        /// <typeparam name="I">type of singleton</typeparam>
-        /// <param name="toAdd">object to be stored as singleton</param>
-        public static void AddPersistentObject<T, I>(T toAdd) where T : Component, I
+        /// <typeparam name="T">type of singleton</typeparam>
+        /// <param name="onChange">function to be called</param>
+        private static void AddChangeCallback<T>(Action<object> onChange) where T : class
         {
-            Initialize();
-            if (singletons.ContainsKey(typeof(I)))
-            {
-                UnityEngine.Object.Destroy(toAdd.gameObject);
-                Debug.LogWarning($"Persistent Singleton of {typeof(I)} already exists. Deleting currently provided object.", toAdd);
+            if (onChange == null)
                 return;
-            }
-
-            singletons.Add(typeof(I), toAdd);
-            if (onChangeCallbacks.TryGetValue(typeof(T), out EventWrapper<object> callback))
-                callback?.Invoke(toAdd);
-            UnityEngine.Object.DontDestroyOnLoad(toAdd);
-        }
-
-
-        public static void AddChangeCallback<T>(Action<object> onChange) where T : class
-        {
 
             if (onChangeCallbacks.TryGetValue(typeof(T), out EventWrapper<object> callback))
             {
@@ -155,23 +147,125 @@ namespace Pospec.Helper
                 Debug.LogWarning(toRemove.ToString() + " not found in singletons");
                 return;
             }
+            RemoveInternal(typeof(T));
+        }
 
-            singletons.Remove(typeof(T));
-            if (onChangeCallbacks.TryGetValue(typeof(T), out EventWrapper<object> callback))
+        private static void RemoveInternal(Type type)
+        {
+            singletons.Remove(type);
+            if (onChangeCallbacks.TryGetValue(type, out EventWrapper<object> callback))
                 callback?.Invoke(null);
         }
 
         /// <summary>
-        /// Gets current singleton of given type
+        /// Get singleton for given type
         /// </summary>
         /// <typeparam name="T">type of singleton</typeparam>
-        public static T Get<T>() where T : class
+        /// <param name="data">returned singleton</param>
+        /// <param name="onChange">when singleton changes it's value, onChange is called with new singleton</param>
+        /// <returns>does singleton exist for given type</returns>
+        public static bool TryGet<T>(out T data, Action<object> onChange = null) where T : class
         {
+            AddChangeCallback<T>(onChange);
             if (singletons.TryGetValue(typeof(T), out object val))
-                return (T)val;
+            {
+                if (val == null || (val is Component c && !c.Exists()))
+                {
+                    RemoveInternal(typeof(T));
+                }
+                else
+                {
+                    data = (T)val;
+                    return true;
+                }
+            }
 
-            Debug.LogWarning($"No instance of {typeof(T)} found.");
-            return default;
+            data = default;
+            return false;
+        }
+
+        /// <summary>
+        /// Get singleton or create new one if singleton doesn't exist.
+        /// Do not pass Components, MonoBehaviours etc. without providing createFunc
+        /// </summary>
+        /// <typeparam name="T">type of singleton</typeparam>
+        /// <param name="createFunc">function to create new singleton, if no function is provided singleton is created by new()</param>
+        /// <param name="onChange">when singleton changes it's value, onChange is called with new singleton</param>
+        /// <returns>valid singleton for given type</returns>
+        public static T GetOrCreateNonComponent<T>(Func<T> createFunc = null, Action<object> onChange = null) where T : class, new()
+        {
+            if (TryGet(out T val, onChange))
+                return val;
+
+            Debug.Log($"No instance of {typeof(T)} found, creating new one");
+            T obj;
+            if (createFunc != null)
+                obj = createFunc();
+            else
+                obj = new T();
+            Add(obj);
+            return obj;
+        }
+
+        /// <summary>
+        /// Get singleton or create new one if singleton doesn't exist.
+        /// </summary>
+        /// <typeparam name="T">type of created singleton</typeparam>
+        /// <typeparam name="I">type of singleton</typeparam>
+        /// <param name="createFunc">function to create new singleton, if no function is provided new GameObject with given Component is created</param>
+        /// <param name="onChange">when singleton changes it's value, onChange is called with new singleton</param>
+        /// <returns>valid singleton for given type</returns>
+        public static I GetOrCreateComponent<T, I>(Func<T> createFunc = null, Action<object> onChange = null) where T : Component, I where I : class
+        {
+            if (TryGet(out I val, onChange))
+                return val;
+
+            Debug.Log($"No instance of {typeof(I)} found, creating new one");
+            T obj;
+            if (createFunc != null)
+                obj = createFunc();
+            else
+            {
+                var go = new GameObject(typeof(I).Name);
+                obj = go.AddComponent<T>();
+                var returner = go.AddComponent<ReturnSingleton>();
+                returner.returnCallback = () => Remove<I>(obj);
+            }
+            Add<I>(obj);
+            return obj;
+        }
+
+        /// <summary>
+        /// Get singleton or create new one if singleton doesn't exist.
+        /// Makes object not destructible when changing scenes.
+        /// </summary>
+        /// <typeparam name="T">type of created singleton</typeparam>
+        /// <typeparam name="I">type of singleton</typeparam>
+        /// <param name="createFunc">function to create new singleton, if no function is provided new GameObject with given Component is created</param>
+        /// <param name="onChange">when singleton changes it's value, onChange is called with new singleton</param>
+        /// <returns>valid singleton for given type</returns>
+        public static I GetOrCreatePersistentObject<T, I>(Func<T> createFunc = null, Action<object> onChange = null) where T : Component, I where I : class
+        {
+            if (TryGet(out I val, onChange))
+            {
+                if (val is Component c)
+                    UnityEngine.Object.DontDestroyOnLoad(c);
+                return val;
+            }
+
+            Debug.Log($"No instance of {typeof(I)} found, creating new one");
+            T obj;
+            if (createFunc != null)
+                obj = createFunc();
+            else
+            {
+                var go = new GameObject(typeof(I).Name);
+                obj = go.AddComponent<T>();
+                var returner = go.AddComponent<ReturnSingleton>();
+                returner.returnCallback = () => Remove<I>(obj);
+            }
+            AddPersistentObject<T, I>(obj);
+            return obj;
         }
     }
 }
