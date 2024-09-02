@@ -5,7 +5,7 @@ using UnityEngine.Pool;
 
 namespace Pospec.Helper.Audio
 {
-    public class AudioSourceSpawner : MonoBehaviour
+    public class SoundManager : MonoBehaviour
     {
         public AudioSource sourcePrefab;
 
@@ -36,7 +36,7 @@ namespace Pospec.Helper.Audio
             if (sourcePrefab == null)
             {
                 var go = new GameObject("Pooled Audio Source");
-                go.transform.parent = transform;
+                go.transform.parent = transform;                
                 source = go.AddComponent<AudioSource>();
                 source.playOnAwake = false;
                 source.loop = false;
@@ -66,28 +66,13 @@ namespace Pospec.Helper.Audio
             Destroy(source.gameObject);
         }
 
-        public void Play(AudioClip clip, AudioProperties properties = default)
+        public void Play(Sound sound)
         {
-            if (clip != null)
+            if (sound != null && sound.clips != null && sound.clips.Count > 0)
             {
                 try
                 {
-                    Pool.Get().Play(clip, properties);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                }
-            }
-        }
-
-        public void Play(List<AudioClip> clips, AudioProperties properties = default)
-        {
-            if (clips != null && clips.Count > 0)
-            {
-                try
-                {
-                    Pool.Get().Play(clips.Rand(), properties);
+                    Pool.Get().Play(sound);
                 }
                 catch (Exception e)
                 {
@@ -97,10 +82,14 @@ namespace Pospec.Helper.Audio
         }
     }
 
-    public class AudioProperties
+    [Serializable]
+    public class Sound
     {
-        public float minPitch = 0.85f;
-        public float maxPitch = 1.15f;
-        public float volume = 1f;
+        public List<AudioClip> clips;
+
+        [Range(.1f, 3f)] public float minPitch = 0.85f;
+        [Range(.1f, 3f)] public float maxPitch = 1.15f;
+        [Range(0, 1)] public float volume = 1f;
+        public bool looping = false;
     }
 }

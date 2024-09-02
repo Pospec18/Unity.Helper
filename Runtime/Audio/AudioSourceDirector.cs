@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -15,27 +14,22 @@ namespace Pospec.Helper.Audio
             this.source = source;
         }
 
-        public void Play(AudioClip clip, AudioProperties properties = default)
+        public void Play(Sound sound)
         {
-            if (source == null || clip == null)
+            if (source == null || sound.clips == null || sound.clips.Count == 0)
                 return;
 
-            if (properties == null)
-                properties = new AudioProperties();
-
+            AudioClip clip = sound.clips.Rand();
+            if (clip == null)
+                return;
             source.clip = clip;
-            source.volume = properties.volume;
-            source.pitch = Random.Range(properties.minPitch, properties.maxPitch);
+            source.volume = sound.volume;
+            source.pitch = Random.Range(sound.minPitch, sound.maxPitch);
+            source.loop = sound.looping;
             source.Play();
 
-            Invoke(nameof(ReturnToPool), clip.length);
-        }
-
-        public void Play(List<AudioClip> clips, AudioProperties properties = default)
-        {
-            if (source == null || clips == null || clips.Count == 0)
-                return;
-            Play(clips.Rand(), properties);
+            if (!sound.looping)
+                Invoke(nameof(ReturnToPool), clip.length);
         }
 
         private void ReturnToPool()
